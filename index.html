@@ -65,7 +65,7 @@
     button {
       padding: 10px 20px;
       font-size: 16px;
-      margin-top: 10px;
+      margin: 5px;
       cursor: pointer;
       border: none;
       border-radius: 5px;
@@ -118,17 +118,19 @@
   </div>
 
   <div class="flip-card" id="card">
-    <div class="flip-card-inner">
-      <div class="card-face card-front">
+    <div class="flip-card-inner" id="flip-inner">
+      <div class="card-face card-front" id="frente">
         <div class="id" id="id-texto">04</div>
         <div class="name" id="nome-texto">Nome Sobrenome</div>
         <div class="codigo" id="codigo-texto">12345678901</div>
       </div>
-      <div class="card-face card-back"></div>
+      <div class="card-face card-back" id="verso"></div>
     </div>
   </div>
 
-  <button onclick="baixarImagem()">Baixar Frente + Verso (PDF)</button>
+  <button onclick="baixarPDF('frente')">Baixar Frente (PDF)</button>
+  <button onclick="baixarPDF('verso')">Baixar Verso (PDF)</button>
+  <button onclick="baixarPDF('ambos')">Baixar Frente + Verso (PDF)</button>
 
   <script>
     function gerarCodigo() {
@@ -141,31 +143,34 @@
       document.getElementById("codigo-texto").innerText = codigo;
     }
 
-    async function baixarImagem() {
+    async function baixarPDF(tipo) {
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'px',
-        format: [500, 620]
-      });
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [500, 310] });
+      const scaleFactor = 4;
 
-      const card = document.querySelector('.flip-card-inner');
+      // Seleciona as faces
+      const frente = document.getElementById('frente');
+      const verso = document.getElementById('verso');
 
-      // Captura frente
-      card.style.transform = 'rotateY(0deg)';
-      const frenteCanvas = await html2canvas(card, { useCORS: true, scale: 3 });
-      const frenteImg = frenteCanvas.toDataURL('image/png');
+      if (tipo === 'frente' || tipo === 'ambos') {
+        const canvasFrente = await html2canvas(frente, { scale: scaleFactor, useCORS: true });
+        const imgFrente = canvasFrente.toDataURL("image/png");
+        const imgHeight = (canvasFrente.height / canvasFrente.width) * 500;
 
-      // Captura verso
-      card.style.transform = 'rotateY(180deg)';
-      const versoCanvas = await html2canvas(card, { useCORS: true, scale: 3 });
-      const versoImg = versoCanvas.toDataURL('image/png');
+        pdf.addImage(imgFrente, 'PNG', 0, 0, 500, imgHeight);
 
-      // Adiciona imagens no PDF
-      pdf.addImage(frenteImg, 'PNG', 0, 0, 500, 300);
-      pdf.addImage(versoImg, 'PNG', 0, 310, 500, 300);
+        if (tipo === 'ambos') pdf.addPage();
+      }
 
-      pdf.save('Carteirinha_EXO-L.pdf');
+      if (tipo === 'verso' || tipo === 'ambos') {
+        const canvasVerso = await html2canvas(verso, { scale: scaleFactor, useCORS: true });
+        const imgVerso = canvasVerso.toDataURL("image/png");
+        const imgHeight = (canvasVerso.height / canvasVerso.width) * 500;
+
+        pdf.addImage(imgVerso, 'PNG', 0, 0, 500, imgHeight);
+      }
+
+      pdf.save(`Carteirinha_EXO-L_${tipo}.pdf`);
     }
   </script>
 </body>
