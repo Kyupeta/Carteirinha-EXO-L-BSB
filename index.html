@@ -13,31 +13,57 @@
     }
 
     .card-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .card {
       position: relative;
       width: 500px;
       height: 300px;
-      margin: 30px auto;
-    }
-
-    .card-face {
-      position: absolute;
-      width: 100%;
-      height: 100%;
       background-size: cover;
       background-position: center;
       border-radius: 10px;
     }
 
-    .card-front {
+    .card.front {
       background-image: url('https://raw.githubusercontent.com/Kyupeta/Carteirinha-EXO-L/main/images/FRENTE-DA-CARTEIRINHA.PNG');
     }
 
-    .card-back {
+    .card.back {
       background-image: url('https://raw.githubusercontent.com/Kyupeta/Carteirinha-EXO-L/main/images/VERSO-DA-CARTEIRINHA.png');
     }
 
-    .hidden {
-      display: none;
+    .id {
+      position: absolute;
+      top: 48px;
+      left: 98px;
+      color: white;
+      font-weight: lighter;
+      font-size: 11px;
+    }
+
+    .name {
+      position: absolute;
+      top: 157px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      font-weight: bold;
+      font-size: 20px;
+      white-space: nowrap;
+    }
+
+    .codigo {
+      position: absolute;
+      bottom: 49px;
+      left: 225px;
+      font-size: 12px;
+      color: black;
+      font-weight: lighter;
     }
 
     .input-group {
@@ -62,37 +88,8 @@
       background-color: #00bcd4;
       color: white;
     }
-
-    .id {
-      position: absolute;
-      top: 48px;
-      left: 98px;
-      color: white;
-      font-weight: light;
-      font-size: 11px;
-    }
-
-    .name {
-      position: absolute;
-      top: 157px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: white;
-      font-weight: bold;
-      font-size: 20px;
-      text-align: center;
-      white-space: nowrap;
-    }
-
-    .codigo {
-      position: absolute;
-      bottom: 49px;
-      left: 225px;
-      font-size: 12px;
-      color: black;
-      font-weight: light;
-    }
   </style>
+
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
@@ -106,17 +103,19 @@
   </div>
 
   <div class="card-container">
-    <div class="card-face card-front" id="frente">
+    <div class="card front" id="card-frente">
       <div class="id" id="id-texto">04</div>
       <div class="name" id="nome-texto">Nome Sobrenome</div>
       <div class="codigo" id="codigo-texto">12345678901</div>
     </div>
-    <div class="card-face card-back" id="verso"></div>
+    <div class="card back" id="card-verso"></div>
   </div>
 
-  <button onclick="baixarPDF('frente')">Baixar Frente (PDF)</button>
-  <button onclick="baixarPDF('verso')">Baixar Verso (PDF)</button>
-  <button onclick="baixarPDF('ambos')">Baixar Frente + Verso (PDF)</button>
+  <div>
+    <button onclick="baixarPDF('frente')">Baixar Frente (PDF)</button>
+    <button onclick="baixarPDF('verso')">Baixar Verso (PDF)</button>
+    <button onclick="baixarPDF('ambos')">Baixar Frente + Verso (PDF)</button>
+  </div>
 
   <script>
     function gerarCodigo() {
@@ -131,45 +130,33 @@
 
     async function baixarPDF(tipo) {
       const { jsPDF } = window.jspdf;
-      const scaleFactor = 4;
-      const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [500, 310] });
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [500, 300] });
+      const scale = 4;
 
-      const frente = document.getElementById('frente');
-      const verso = document.getElementById('verso');
+      const frente = document.getElementById('card-frente');
+      const verso = document.getElementById('card-verso');
 
       if (tipo === 'frente' || tipo === 'ambos') {
-        frente.classList.remove('hidden');
-        verso.classList.add('hidden');
-
-        await new Promise(resolve => setTimeout(resolve, 100)); // espera o layout se ajustar
-
-        const canvasFrente = await html2canvas(frente, { scale: scaleFactor, useCORS: true });
-        const imgFrente = canvasFrente.toDataURL("image/png");
-        const imgHeight = (canvasFrente.height / canvasFrente.width) * 500;
-
-        pdf.addImage(imgFrente, 'PNG', 0, 0, 500, imgHeight);
+        const canvasFrente = await html2canvas(frente, { scale, useCORS: true });
+        const imgDataFrente = canvasFrente.toDataURL('image/png');
+        pdf.addImage(imgDataFrente, 'PNG', 0, 0, 500, 300);
 
         if (tipo === 'ambos') pdf.addPage();
       }
 
-      if (tipo === 'verso' || tipo === 'ambos') {
-        frente.classList.add('hidden');
-        verso.classList.remove('hidden');
+      if (tipo === 'verso') {
+        const canvasVerso = await html2canvas(verso, { scale, useCORS: true });
+        const imgDataVerso = canvasVerso.toDataURL('image/png');
+        pdf.addImage(imgDataVerso, 'PNG', 0, 0, 500, 300);
+      }
 
-        await new Promise(resolve => setTimeout(resolve, 100)); // espera o layout se ajustar
-
-        const canvasVerso = await html2canvas(verso, { scale: scaleFactor, useCORS: true });
-        const imgVerso = canvasVerso.toDataURL("image/png");
-        const imgHeight = (canvasVerso.height / canvasVerso.width) * 500;
-
-        pdf.addImage(imgVerso, 'PNG', 0, 0, 500, imgHeight);
+      if (tipo === 'ambos') {
+        const canvasVerso = await html2canvas(verso, { scale, useCORS: true });
+        const imgDataVerso = canvasVerso.toDataURL('image/png');
+        pdf.addImage(imgDataVerso, 'PNG', 0, 0, 500, 300);
       }
 
       pdf.save(`Carteirinha_EXOL_${tipo}.pdf`);
-
-      // Mostra novamente ambos
-      frente.classList.remove('hidden');
-      verso.classList.remove('hidden');
     }
   </script>
 </body>
