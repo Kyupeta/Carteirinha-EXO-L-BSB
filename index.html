@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <title>Carteirinha EXO-L</title>
+
+  <!-- Estilos -->
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -25,12 +27,7 @@
       width: 100%;
       height: 100%;
       text-align: center;
-      transition: transform 0.8s;
       transform-style: preserve-3d;
-    }
-
-    .flip-card:hover .flip-card-inner {
-      transform: rotateY(180deg);
     }
 
     .card-face {
@@ -43,9 +40,9 @@
       border-radius: 10px;
     }
 
-    /* Links diretos para as imagens no GitHub */
     .card-front {
       background-image: url('https://raw.githubusercontent.com/Kyupeta/Carteirinha-EXO-L/main/images/FRENTE-DA-CARTEIRINHA.PNG');
+      z-index: 2;
     }
 
     .card-back {
@@ -106,6 +103,10 @@
       font-weight: light;
     }
   </style>
+
+  <!-- Bibliotecas -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
   <h1>Gerador de Carteirinha EXO-L</h1>
@@ -127,37 +128,44 @@
     </div>
   </div>
 
-  <button onclick="baixarImagem()">Baixar Frente + Verso</button>
+  <button onclick="baixarImagem()">Baixar Frente + Verso (PDF)</button>
 
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script>
     function gerarCodigo() {
       const nome = document.getElementById("nome").value || "Nome Sobrenome";
       const idNumero = document.getElementById("id-numero").value || "00";
       const codigo = Math.floor(10000000000 + Math.random() * 90000000000);
 
-      // Atualiza o conteúdo na frente da carteirinha
       document.getElementById("nome-texto").innerText = nome;
       document.getElementById("id-texto").innerText = idNumero;
       document.getElementById("codigo-texto").innerText = codigo;
     }
 
-    function baixarImagem() {
-      const cardElement = document.querySelector('.flip-card');
-      
-      // Usando html2canvas para capturar a imagem da carta
-      html2canvas(cardElement, {
-        logging: true,
-        backgroundColor: "#121212",
-        useCORS: true
-      }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = 'carteirinha_EXOL.png'; // Nome do arquivo
-        link.href = canvas.toDataURL("image/png"); // Cria o arquivo para download
-        link.click(); // Dispara o clique para o download
-      }).catch(error => {
-        console.error("Erro ao gerar a imagem:", error);
+    async function baixarImagem() {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: [500, 620]
       });
+
+      const card = document.querySelector('.flip-card-inner');
+
+      // Captura frente
+      card.style.transform = 'rotateY(0deg)';
+      const frenteCanvas = await html2canvas(card, { useCORS: true, scale: 3 });
+      const frenteImg = frenteCanvas.toDataURL('image/png');
+
+      // Captura verso
+      card.style.transform = 'rotateY(180deg)';
+      const versoCanvas = await html2canvas(card, { useCORS: true, scale: 3 });
+      const versoImg = versoCanvas.toDataURL('image/png');
+
+      // Adiciona imagens no PDF
+      pdf.addImage(frenteImg, 'PNG', 0, 0, 500, 300);
+      pdf.addImage(versoImg, 'PNG', 0, 310, 500, 300);
+
+      pdf.save('Carteirinha_EXO-L.pdf');
     }
   </script>
 </body>
