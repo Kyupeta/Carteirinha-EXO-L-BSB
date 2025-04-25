@@ -27,6 +27,7 @@
       background-size: cover;
       background-position: center;
       border-radius: 10px;
+      display: block; /* Garante que as imagens não sobreponham */
     }
 
     .card.front {
@@ -131,7 +132,7 @@
     async function baixarPDF(tipo) {
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [500, 300] });
-      const scale = 4;
+      const scale = 4; // Melhora a qualidade da imagem capturada
 
       // Define as áreas que serão capturadas
       const frente = document.getElementById('card-frente');
