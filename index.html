@@ -132,7 +132,7 @@
     async function baixarPDF(tipo) {
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [500, 300] });
-      const scale = 4; // Melhora a qualidade da imagem capturada
+      const scale = 4; // Melhorar a qualidade das imagens capturadas
 
       // Define as áreas que serão capturadas
       const frente = document.getElementById('card-frente');
@@ -147,8 +147,10 @@
       if (tipo === 'verso' || tipo === 'ambos') {
         const canvasVerso = await html2canvas(verso, { scale: scale });
         const imgDataVerso = canvasVerso.toDataURL("image/png");
-        pdf.addPage();
-        pdf.addImage(imgDataVerso, 'PNG', 0, 0, 500, 300);
+        if (tipo === 'ambos') {
+          pdf.addPage(); // Adiciona uma nova página para o verso
+        }
+        pdf.addImage(imgDataVerso, 'PNG', 0, 0, 500, 300); // Mesmo tamanho para o verso
       }
 
       pdf.save('carteirinha_EXOL.pdf');
