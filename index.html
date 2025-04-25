@@ -133,30 +133,24 @@
       const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [500, 300] });
       const scale = 4;
 
+      // Define as áreas que serão capturadas
       const frente = document.getElementById('card-frente');
       const verso = document.getElementById('card-verso');
 
       if (tipo === 'frente' || tipo === 'ambos') {
-        const canvasFrente = await html2canvas(frente, { scale, useCORS: true });
-        const imgDataFrente = canvasFrente.toDataURL('image/png');
+        const canvasFrente = await html2canvas(frente, { scale: scale });
+        const imgDataFrente = canvasFrente.toDataURL("image/png");
         pdf.addImage(imgDataFrente, 'PNG', 0, 0, 500, 300);
-
-        if (tipo === 'ambos') pdf.addPage();
       }
 
-      if (tipo === 'verso') {
-        const canvasVerso = await html2canvas(verso, { scale, useCORS: true });
-        const imgDataVerso = canvasVerso.toDataURL('image/png');
+      if (tipo === 'verso' || tipo === 'ambos') {
+        const canvasVerso = await html2canvas(verso, { scale: scale });
+        const imgDataVerso = canvasVerso.toDataURL("image/png");
+        pdf.addPage();
         pdf.addImage(imgDataVerso, 'PNG', 0, 0, 500, 300);
       }
 
-      if (tipo === 'ambos') {
-        const canvasVerso = await html2canvas(verso, { scale, useCORS: true });
-        const imgDataVerso = canvasVerso.toDataURL('image/png');
-        pdf.addImage(imgDataVerso, 'PNG', 0, 0, 500, 300);
-      }
-
-      pdf.save(`Carteirinha_EXOL_${tipo}.pdf`);
+      pdf.save('carteirinha_EXOL.pdf');
     }
   </script>
 </body>
