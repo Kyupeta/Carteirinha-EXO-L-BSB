@@ -3,8 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <title>Carteirinha EXO-L</title>
-
-  <!-- Estilos -->
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -14,27 +12,17 @@
       padding: 20px;
     }
 
-    .flip-card {
-      background-color: transparent;
+    .card-container {
+      position: relative;
       width: 500px;
       height: 300px;
-      perspective: 1000px;
       margin: 30px auto;
-    }
-
-    .flip-card-inner {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      text-align: center;
-      transform-style: preserve-3d;
     }
 
     .card-face {
       position: absolute;
       width: 100%;
       height: 100%;
-      backface-visibility: hidden;
       background-size: cover;
       background-position: center;
       border-radius: 10px;
@@ -42,12 +30,14 @@
 
     .card-front {
       background-image: url('https://raw.githubusercontent.com/Kyupeta/Carteirinha-EXO-L/main/images/FRENTE-DA-CARTEIRINHA.PNG');
-      z-index: 2;
     }
 
     .card-back {
       background-image: url('https://raw.githubusercontent.com/Kyupeta/Carteirinha-EXO-L/main/images/VERSO-DA-CARTEIRINHA.png');
-      transform: rotateY(180deg);
+    }
+
+    .hidden {
+      display: none;
     }
 
     .input-group {
@@ -103,8 +93,6 @@
       font-weight: light;
     }
   </style>
-
-  <!-- Bibliotecas -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
@@ -117,15 +105,13 @@
     <button onclick="gerarCodigo()">Gerar Carteirinha</button>
   </div>
 
-  <div class="flip-card" id="card">
-    <div class="flip-card-inner" id="flip-inner">
-      <div class="card-face card-front" id="frente">
-        <div class="id" id="id-texto">04</div>
-        <div class="name" id="nome-texto">Nome Sobrenome</div>
-        <div class="codigo" id="codigo-texto">12345678901</div>
-      </div>
-      <div class="card-face card-back" id="verso"></div>
+  <div class="card-container">
+    <div class="card-face card-front" id="frente">
+      <div class="id" id="id-texto">04</div>
+      <div class="name" id="nome-texto">Nome Sobrenome</div>
+      <div class="codigo" id="codigo-texto">12345678901</div>
     </div>
+    <div class="card-face card-back" id="verso"></div>
   </div>
 
   <button onclick="baixarPDF('frente')">Baixar Frente (PDF)</button>
@@ -145,14 +131,18 @@
 
     async function baixarPDF(tipo) {
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [500, 310] });
       const scaleFactor = 4;
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [500, 310] });
 
-      // Seleciona as faces
       const frente = document.getElementById('frente');
       const verso = document.getElementById('verso');
 
       if (tipo === 'frente' || tipo === 'ambos') {
+        frente.classList.remove('hidden');
+        verso.classList.add('hidden');
+
+        await new Promise(resolve => setTimeout(resolve, 100)); // espera o layout se ajustar
+
         const canvasFrente = await html2canvas(frente, { scale: scaleFactor, useCORS: true });
         const imgFrente = canvasFrente.toDataURL("image/png");
         const imgHeight = (canvasFrente.height / canvasFrente.width) * 500;
@@ -163,6 +153,11 @@
       }
 
       if (tipo === 'verso' || tipo === 'ambos') {
+        frente.classList.add('hidden');
+        verso.classList.remove('hidden');
+
+        await new Promise(resolve => setTimeout(resolve, 100)); // espera o layout se ajustar
+
         const canvasVerso = await html2canvas(verso, { scale: scaleFactor, useCORS: true });
         const imgVerso = canvasVerso.toDataURL("image/png");
         const imgHeight = (canvasVerso.height / canvasVerso.width) * 500;
@@ -170,7 +165,11 @@
         pdf.addImage(imgVerso, 'PNG', 0, 0, 500, imgHeight);
       }
 
-      pdf.save(`Carteirinha_EXO-L_${tipo}.pdf`);
+      pdf.save(`Carteirinha_EXOL_${tipo}.pdf`);
+
+      // Mostra novamente ambos
+      frente.classList.remove('hidden');
+      verso.classList.remove('hidden');
     }
   </script>
 </body>
